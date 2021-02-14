@@ -182,7 +182,7 @@ fn test_fail_no_agree_2b() {
         .unwrap()
         .start(&Entry { x: 30 })
         .expect("leader2 rejected start");
-    if index2 < 2 || index2 > 3 {
+    if !(2..=3).contains(&index2) {
         panic!("unexpected index {}", index2);
     }
 
@@ -433,7 +433,7 @@ fn test_count_2b() {
     cfg.check_one_leader();
     let mut total1 = rpcs(&cfg);
 
-    if total1 > 30 || total1 < 1 {
+    if !(1..=30).contains(&total1) {
         panic!("too many or few RPCs ({}) to elect initial leader", total1);
     }
 
@@ -689,11 +689,9 @@ fn test_figure_8_2c() {
         let mut leader = None;
         for i in 0..servers {
             let mut rafts = cfg.rafts.lock().unwrap();
-            if let Some(raft) = rafts.get_mut(i) {
-                if let Some(raft) = raft {
-                    if raft.start(&random_entry(&mut random)).is_ok() {
-                        leader = Some(i);
-                    }
+            if let Some(Some(raft)) = rafts.get_mut(i) {
+                if raft.start(&random_entry(&mut random)).is_ok() {
+                    leader = Some(i);
                 }
             }
         }
